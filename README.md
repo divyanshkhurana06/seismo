@@ -13,6 +13,8 @@ a news feed. Everything they know, they know from the graph.
 
 Built solo by **Divyansh Khurana** for Graph Hacks 2026 (WeMakeDevs × FalkorDB), Oct 15–18 2026.
 
+**Live:** https://seismo.onrender.com (free tier: first load after idle takes ~30 s)
+
 **Tracks entered:** 01 Agents That Act on Connected Data · 02 Agent Memory and Coordination
 
 ---

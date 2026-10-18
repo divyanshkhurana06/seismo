@@ -10,7 +10,7 @@
 
 **Demo video:** <paste link>
 
-**Live deployment:** <paste link, or "local setup, see README (Docker + one command)">
+**Live deployment:** https://seismo.onrender.com (Render free tier + FalkorDB Cloud free tier; first load after idle takes ~30 s)
 
 **Team:** Divyansh Khurana (solo)
 
