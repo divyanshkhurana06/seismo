@@ -208,6 +208,8 @@ let openId = null;
 function statusBadge(s) { return `<span class="badge ${esc(s)}">${esc(s || 'candidate')}</span>`; }
 async function refreshStories() {
   const list = await (await fetch('/api/stories')).json();
+  const rank = {breaking: 0, developing: 1, edit_war: 2, candidate: 3, unclear: 4, vandalism: 5, routine: 6};
+  list.sort((a, b) => (rank[a.status] ?? 4) - (rank[b.status] ?? 4) || b.updated - a.updated);
   $('#n-stories').textContent = list.length;
   if (!list.length) return;
   $('#stories').innerHTML = list.map(s => `
