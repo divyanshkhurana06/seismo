@@ -13,3 +13,5 @@ services:
         sync: false
       - key: SEISMO_SOURCE
         value: live
+      - key: SEISMO_RETAIN
+        value: "7200"        # 2 h of edits keeps the graph well under the 100 MB free-tier cap
