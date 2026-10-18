@@ -1,0 +1,15 @@
+# One-click deploy of the app on Render's free web tier. Point FALKORDB_URL at a FalkorDB Cloud free-tier instance
+# (app.falkordb.cloud, no card needed) or any reachable FalkorDB.
+services:
+  - type: web
+    name: seismo
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/stats
+    envVars:
+      - key: FALKORDB_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SEISMO_SOURCE
+        value: live

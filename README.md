@@ -200,6 +200,13 @@ Record your own: `python -m seismo.stream record data/capture.jsonl`.
 Useful env vars: `FALKORDB_URL`, `SEISMO_WINDOW` (detection window, s), `SEISMO_RETAIN` (history kept, s),
 `SEISMO_DETECT_EVERY`, `SEISMO_ANALYSTS`, `SEISMO_MODEL_ANALYST`, `SEISMO_MODEL_SCOUT`.
 
+## Deploy (free tiers)
+
+1. Create a free FalkorDB Cloud instance at app.falkordb.cloud and copy its connection string as `FALKORDB_URL`
+   (`falkor://:password@host:port`).
+2. Click "New Blueprint" on Render, point it at this repo (`render.yaml`), set `FALKORDB_URL` and `ANTHROPIC_API_KEY`.
+   Any Docker host works the same way: build the `Dockerfile`, set the two variables, expose `$PORT`.
+
 ## Data and privacy
 
 Only public data: the Wikimedia recent-changes stream and the public MediaWiki/Wikidata APIs. Anonymous editors appear in
