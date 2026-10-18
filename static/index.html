@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seismo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090d; --panel:#0d1118; --panel2:#111722; --line:#1c2432; --text:#e8ecf2; --muted:#7c8799;
+  --hot:#ff4d3d; --warm:#ffb347; --cool:#4ea1ff; --story:#c084fc; --ok:#3ddc97; --anon:#5c6678;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace; --serif:'Instrument Serif',Georgia,serif;
+}
+*{box-sizing:border-box} html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:12.5px;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:18px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.brand{font-family:var(--serif);font-size:26px;letter-spacing:.5px;display:flex;align-items:baseline;gap:10px}
+.brand small{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.pills{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.pill{border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--muted);white-space:nowrap}
+.pill b{color:var(--text);font-weight:500}
+.pill.live::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--hot);margin-right:6px;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 440px;min-height:0}
+#stage{position:relative;min-width:0;min-height:0;background:radial-gradient(1200px 600px at 40% 40%,#0d1320 0%,var(--bg) 70%)}
+#graph{position:absolute;inset:0}
+#pulse{position:absolute;left:0;right:0;bottom:0;height:86px;background:linear-gradient(transparent,rgba(7,9,13,.92) 40%);pointer-events:none}
+#pulse canvas{position:absolute;left:16px;right:16px;bottom:10px;width:calc(100% - 32px);height:64px}
+#pulse .lbl{position:absolute;left:16px;bottom:72px;color:var(--muted);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}
+#legend{position:absolute;top:12px;left:14px;display:flex;gap:14px;color:var(--muted);font-size:11px;background:rgba(7,9,13,.6);padding:6px 10px;border-radius:8px;border:1px solid var(--line)}
+#legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+#hover{position:absolute;pointer-events:none;background:#0d1118ee;border:1px solid var(--line);padding:8px 10px;border-radius:8px;max-width:320px;display:none;z-index:5}
+#hover b{color:#fff}
+aside{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;color:var(--muted);font:inherit;padding:10px;cursor:pointer;border-bottom:2px solid transparent;letter-spacing:.06em;text-transform:uppercase;font-size:11px}
+.tabs button.on{color:var(--text);border-bottom-color:var(--hot)}
+.tabs button .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--panel2);color:var(--text);margin-left:6px;font-size:10px}
+.pane{display:none;flex:1;overflow:auto;padding:10px 12px;min-height:0}
+.pane.on{display:block}
+.card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;background:var(--panel2);cursor:pointer;transition:border-color .2s}
+.card:hover{border-color:#2b3647}
+.card.open{border-color:var(--story)}
+.badge{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:#1b2230;color:var(--muted);margin-right:6px}
+.badge.breaking{background:#3a1512;color:var(--hot)} .badge.developing{background:#3a2a10;color:var(--warm)}
+.badge.edit_war,.badge.vandalism{background:#2b1a3a;color:var(--story)} .badge.candidate{background:#1b2230;color:var(--muted)}
+.badge.routine,.badge.unclear{background:#14202b;color:var(--cool)}
+.hl{font-family:var(--serif);font-size:17px;line-height:1.2;margin:6px 0 4px;color:#fff}
+.meta{color:var(--muted);font-size:11px;display:flex;gap:10px;flex-wrap:wrap}
+.pages a{color:var(--cool);text-decoration:none;margin-right:8px}
+.pages a:hover{text-decoration:underline}
+.brief{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);line-height:1.5;color:#cfd6e0;white-space:pre-wrap}
+.cite{display:block;margin-top:5px;color:var(--muted);font-size:11px}
+.cite a{color:var(--ok);text-decoration:none}
+.conf{height:3px;background:#1b2230;border-radius:2px;margin-top:8px;overflow:hidden}
+.conf i{display:block;height:100%;background:linear-gradient(90deg,var(--warm),var(--ok))}
+.tremor{display:grid;grid-template-columns:52px 1fr;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.tremor .score{font-family:var(--serif);font-size:22px;color:var(--hot);line-height:1}
+.tremor .pg{color:#cfd6e0}
+.tremor .pg span{color:var(--muted)}
+#log{font-size:11.5px;line-height:1.45}
+#log .row{padding:4px 0;border-bottom:1px solid #121926;display:flex;gap:8px}
+#log .who{flex:0 0 72px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-size:10px;padding-top:2px}
+#log .who.scout{color:var(--warm)} #log .who.analyst,#log .who.analyst-1,#log .who.analyst-2{color:var(--story)} #log .who.desk{color:var(--cool)} #log .who.system{color:var(--muted)}
+#log .tool{color:var(--ok)} #log .msg{color:#cfd6e0;word-break:break-word}
+#log .cy{color:var(--muted);white-space:pre-wrap;font-size:10.5px;margin-top:2px}
+.ask{border-top:1px solid var(--line);padding:10px 12px;background:var(--panel)}
+.ask form{display:flex;gap:8px}
+.ask input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--text);font:inherit;padding:9px 11px;outline:none}
+.ask input:focus{border-color:var(--cool)}
+.ask button{background:var(--text);color:#000;border:0;border-radius:8px;font:inherit;font-weight:600;padding:0 14px;cursor:pointer}
+.ask button:disabled{opacity:.4}
+#answer{max-height:34vh;overflow:auto;margin-top:8px;line-height:1.55;color:#dfe5ee;white-space:pre-wrap;display:none}
+#answer a{color:var(--ok);text-decoration:none;border-bottom:1px dotted var(--ok)}
+#answer .steps{color:var(--muted);font-size:11px;margin-bottom:6px}
+.empty{color:var(--muted);padding:20px 6px;text-align:center;line-height:1.6}
+@media (max-width:900px){main{grid-template-columns:1fr;grid-template-rows:46vh 1fr}aside{border-left:0;border-top:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Seismo <small>world events, felt through wikipedia's live edit graph</small></div>
+  <div class="pills">
+    <span class="pill live" id="p-src">stream</span>
+    <span class="pill">edits <b id="p-edits">0</b></span>
+    <span class="pill">graph <b id="p-nodes">–</b></span>
+    <span class="pill">crew <b id="p-agents">…</b></span>
+    <span class="pill">falkordb <b>●</b></span>
+  </div>
+</header>
+<main>
+  <section id="stage">
+    <div id="graph"></div>
+    <div id="legend"><span><i style="background:var(--hot)"></i>hot page</span><span><i style="background:var(--cool)"></i>page</span><span><i style="background:var(--anon);width:6px;height:6px"></i>editor</span><span><i style="background:var(--story);border-radius:2px"></i>story</span><span>— same item, other language</span></div>
+    <div id="hover"></div>
+    <div id="pulse"><div class="lbl">edits / minute · last 60 min · <span style="color:var(--hot)">reverts</span></div><canvas id="pulsec"></canvas></div>
+  </section>
+  <aside>
+    <div class="tabs">
+      <button class="on" data-t="stories">Stories<span class="n" id="n-stories">0</span></button>
+      <button data-t="tremors">Tremors<span class="n" id="n-tremors">0</span></button>
+      <button data-t="crew">Crew</button>
+    </div>
+    <div class="pane on" id="stories"><div class="empty">Listening… the Scout files stories when strangers converge on the same pages.</div></div>
+    <div class="pane" id="tremors"><div class="empty">Detector runs every 45s.</div></div>
+    <div class="pane" id="crew"><div id="log"></div></div>
+    <div class="ask">
+      <form id="askf"><input id="q" placeholder="Ask the Desk: what's happening right now?" autocomplete="off"><button id="askb">ask</button></form>
+      <div id="answer"></div>
+    </div>
+  </aside>
+</main>
+<script src="https://unpkg.com/force-graph@1.43.5/dist/force-graph.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const fmtAgo = ts => { const d = Math.max(0, Date.now()/1000 - ts); return d < 60 ? Math.round(d)+'s' : d < 3600 ? Math.round(d/60)+'m' : Math.round(d/3600)+'h'; };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const wikiUrl = (lang, title) => `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(String(title).replace(/ /g,'_'))}`;
+const diffUrl = (lang, rev) => `https://${lang}.wikipedia.org/w/index.php?diff=${rev}`;
+
+// ---------------- tabs
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === b.dataset.t));
+});
+
+// ---------------- graph
+const pulses = new Map();   // node id -> expiry time
+let G, gdata = {nodes: [], links: []};
+const nodeIndex = new Map();
+function initGraph() {
+  G = ForceGraph()($('#graph'))
+    .backgroundColor('rgba(0,0,0,0)')
+    .nodeId('id')
+    .nodeVal(n => n.kind === 'page' ? 2 + Math.min(n.editors || 1, 12) * 1.4 : n.kind === 'story' ? 9 : 1)
+    .linkColor(l => l.kind === 'same_as' ? '#5a6b85' : l.kind === 'about' ? 'rgba(192,132,252,.55)' : 'rgba(78,161,255,.18)')
+    .linkWidth(l => l.kind === 'about' ? 1.4 : l.kind === 'same_as' ? 1.2 : 0.6 + Math.min(l.n || 1, 6) * 0.3)
+    .linkLineDash(l => l.kind === 'same_as' ? [4, 3] : null)
+    .d3VelocityDecay(0.3)
+    .cooldownTime(6000)
+    .nodeCanvasObject((n, ctx, scale) => {
+      const t = performance.now();
+      const p = pulses.get(n.id);
+      const r = n.kind === 'page' ? 3 + Math.min(n.editors || 1, 12) * 0.9 : n.kind === 'story' ? 7 : 2;
+      if (p && p > t) { // pulse ring
+        const k = 1 - (p - t) / 1800;
+        ctx.beginPath(); ctx.arc(n.x, n.y, r + 4 + k * 18, 0, 2 * Math.PI);
+        ctx.strokeStyle = `rgba(255,77,61,${(1 - k) * 0.9})`; ctx.lineWidth = 1.5; ctx.stroke();
+      }
+      ctx.beginPath();
+      if (n.kind === 'story') { ctx.rect(n.x - r, n.y - r, r * 2, r * 2); ctx.fillStyle = '#c084fc'; }
+      else if (n.kind === 'editor') { ctx.arc(n.x, n.y, r, 0, 2 * Math.PI); ctx.fillStyle = n.anon ? '#5c6678' : '#8a98b0'; }
+      else { ctx.arc(n.x, n.y, r, 0, 2 * Math.PI); ctx.fillStyle = (n.editors || 0) >= 3 ? '#ff4d3d' : '#4ea1ff'; if (n.reverts >= 2) ctx.fillStyle = '#ffb347'; }
+      ctx.fill();
+      if (n.kind !== 'editor' && (scale > 1.1 || (n.editors || 0) >= 3 || n.kind === 'story')) {
+        const label = n.kind === 'page' ? `${n.lang}: ${n.title}` : n.title;
+        ctx.font = `${Math.max(10 / scale, 3)}px IBM Plex Mono`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillStyle = n.kind === 'story' ? '#e9d5ff' : 'rgba(232,236,242,.85)';
+        ctx.fillText(label.length > 38 ? label.slice(0, 36) + '…' : label, n.x, n.y + r + 2);
+      }
+    })
+    .onNodeHover(n => {
+      const h = $('#hover');
+      if (!n) { h.style.display = 'none'; return; }
+      h.style.display = 'block';
+      h.innerHTML = n.kind === 'page' ? `<b>${esc(n.lang)}: ${esc(n.title)}</b><br>${n.editors} editors · ${n.edits} edits · ${n.reverts} reverts${n.qid ? ' · ' + n.qid : ''}`
+        : n.kind === 'editor' ? `<b>${n.anon ? 'anonymous editor' : esc(n.title)}</b>` : `<b>story</b> ${esc(n.title)}`;
+    })
+    .onNodeClick(n => { if (n.kind === 'page') window.open(n.url || wikiUrl(n.lang, n.title), '_blank'); if (n.kind === 'story') openStory(n.id.slice(2)); });
+  $('#graph').addEventListener('mousemove', e => { const h = $('#hover'); h.style.left = (e.offsetX + 14) + 'px'; h.style.top = (e.offsetY + 14) + 'px'; });
+  const ro = new ResizeObserver(() => G.width($('#stage').clientWidth).height($('#stage').clientHeight));
+  ro.observe($('#stage'));
+}
+async function refreshGraph() {
+  const d = await (await fetch('/api/graph')).json();
+  const old = new Map(gdata.nodes.map(n => [n.id, n]));
+  d.nodes.forEach(n => { const o = old.get(n.id); if (o) { n.x = o.x; n.y = o.y; n.vx = o.vx; n.vy = o.vy; } });
+  gdata = d; nodeIndex.clear(); d.nodes.forEach(n => nodeIndex.set(n.id, n));
+  G.graphData(gdata);
+  $('#p-nodes').textContent = `${d.nodes.length}n/${d.links.length}e`;
+}
+
+// ---------------- pulse strip
+let series = [];
+function drawPulse() {
+  const c = $('#pulsec'); const W = c.clientWidth, H = c.clientHeight; if (!W) return;
+  c.width = W * devicePixelRatio; c.height = H * devicePixelRatio;
+  const ctx = c.getContext('2d'); ctx.scale(devicePixelRatio, devicePixelRatio); ctx.clearRect(0, 0, W, H);
+  const now = Math.floor(Date.now() / 60000) * 60; const mins = 60; const byM = new Map(series.map(s => [s.m, s]));
+  const max = Math.max(5, ...series.map(s => s.n)); const bw = W / mins;
+  for (let i = 0; i < mins; i++) {
+    const m = now - (mins - 1 - i) * 60; const s = byM.get(m); const n = s ? s.n : 0, rv = s ? s.reverts : 0;
+    const h = n / max * (H - 6);
+    ctx.fillStyle = i === mins - 1 ? '#ffb347' : '#2b3a52'; ctx.fillRect(i * bw + 1, H - h, bw - 2, h);
+    if (rv) { ctx.fillStyle = '#ff4d3d'; ctx.fillRect(i * bw + 1, H - rv / max * (H - 6), bw - 2, rv / max * (H - 6)); }
+  }
+}
+async function refreshPulse() { series = (await (await fetch('/api/pulse')).json()).series; drawPulse(); }
+function bumpPulse(rows) {
+  const m = Math.floor(Date.now() / 60000) * 60; let s = series.find(x => x.m === m);
+  if (!s) { s = {m, n: 0, reverts: 0}; series.push(s); }
+  s.n += rows.length; s.reverts += rows.filter(r => r.revert).length; drawPulse();
+}
+
+// ---------------- stories / tremors / crew
+let openId = null;
+function statusBadge(s) { return `<span class="badge ${esc(s)}">${esc(s || 'candidate')}</span>`; }
+async function refreshStories() {
+  const list = await (await fetch('/api/stories')).json();
+  $('#n-stories').textContent = list.length;
+  if (!list.length) return;
+  $('#stories').innerHTML = list.map(s => `
+    <div class="card ${s.id === openId ? 'open' : ''}" data-id="${s.id}">
+      <div>${statusBadge(s.status)}<span class="badge">${s.briefs} brief${s.briefs === 1 ? '' : 's'}</span><span class="badge">${(s.tasks || []).map(t => t.status).join(' · ') || 'queued'}</span></div>
+      <div class="hl">${esc(s.headline)}</div>
+      <div class="meta"><span>updated ${fmtAgo(s.updated)} ago</span><span>confidence ${(s.confidence * 100 | 0)}%</span><span>tremor ${s.score}</span></div>
+      <div class="pages">${(s.pages || []).slice(0, 6).map(p => `<a href="${esc(p.url || wikiUrl(p.lang, p.title))}" target="_blank" onclick="event.stopPropagation()">${esc(p.lang)}:${esc(p.title)}</a>`).join('')}</div>
+      <div class="conf"><i style="width:${(s.confidence * 100) | 0}%"></i></div>
+      <div class="detail" id="d-${s.id}"></div>
+    </div>`).join('');
+  document.querySelectorAll('.card').forEach(c => c.onclick = () => openStory(c.dataset.id));
+  if (openId) renderDetail(openId);
+}
+async function openStory(id) {
+  openId = openId === id ? null : id;
+  document.querySelectorAll('.card').forEach(c => c.classList.toggle('open', c.dataset.id === openId));
+  document.querySelectorAll('.detail').forEach(d => d.innerHTML = '');
+  if (openId) renderDetail(openId);
+}
+async function renderDetail(id) {
+  const s = await (await fetch('/api/story/' + id)).json(); const el = $('#d-' + id); if (!el) return;
+  if (!s.briefs || !s.briefs.length) { el.innerHTML = `<div class="brief" style="color:var(--muted)">No brief yet. Task: ${(s.tasks || []).map(t => t.status + (t.claimed_by ? ' by ' + t.claimed_by : '')).join(', ') || 'none'}.<br>Scout's note: ${esc((s.tasks || [])[0]?.note || '')}</div>`; return; }
+  el.innerHTML = s.briefs.map(b => `<div class="brief"><div style="color:var(--muted);font-size:11px;margin-bottom:4px">${esc(b.agent)} · ${fmtAgo(b.ts)} ago · ${statusBadge(b.status)}${(b.tags || []).map(t => `<span class="badge">${esc(t)}</span>`).join('')}</div>${esc(b.summary)}
+    ${b.cites.map(c => `<span class="cite">↳ <a href="${esc(c.diff_url || diffUrl(c.lang, c.rev))}" target="_blank">${esc(c.lang)} rev ${c.rev}</a> on ${esc(c.title)} by ${esc(c.editor)} (${c.delta > 0 ? '+' : ''}${c.delta}) ${esc(c.comment || '')}</span>`).join('')}</div>`).join('');
+}
+function renderTremors(comps) {
+  $('#n-tremors').textContent = comps.length;
+  if (!comps.length) { $('#tremors').innerHTML = '<div class="empty">Quiet. No page has 3+ distinct humans editing in the last 20 minutes.</div>'; return; }
+  $('#tremors').innerHTML = comps.map(c => `<div class="tremor"><div><div class="score">${Math.round(c.score)}</div><div style="color:var(--muted);font-size:10px">${c.langs.join(' ')}</div></div>
+    <div>${c.pages.slice(0, 6).map(p => `<div class="pg"><a href="${esc(p.url)}" target="_blank" style="color:#fff;text-decoration:none">${esc(p.lang)}: ${esc(p.title)}</a> <span>${p.editors} editors · ${p.edits} edits${p.reverts ? ` · <span style="color:var(--hot)">${p.reverts} reverts</span>` : ''}</span></div>`).join('')}
+    ${c.pages.length > 6 ? `<div style="color:var(--muted)">+${c.pages.length - 6} more pages</div>` : ''}</div></div>`).join('');
+}
+const logEl = $('#log');
+function logRow(ev) {
+  const who = ev.agent || 'system';
+  let body;
+  if (ev.type === 'agent_tool') {
+    const inp = ev.input || {};
+    body = `<span class="tool">${esc(ev.tool)}</span>` + (inp.cypher ? `<div class="cy">${esc(inp.cypher)}</div>` : inp.rev ? ` ${esc(inp.lang)} rev ${inp.rev}` : inp.story_id ? ` ${esc(inp.story_id)}` : inp.title ? ` ${esc(inp.lang)}:${esc(inp.title)}` : inp.headline ? `<div class="cy">${esc(inp.headline)}</div>` : '');
+  } else if (ev.type === 'agent_tool_result') return;
+  else if (ev.type === 'task') body = `task ${esc(ev.task)} → <b>${esc(ev.status)}</b>${ev.by ? ' by ' + esc(ev.by) : ''}${ev.priority ? ' (p' + ev.priority + ')' : ''}`;
+  else if (ev.type === 'brief') body = `<b>filed:</b> ${esc(ev.headline)} <span class="badge ${esc(ev.status)}">${esc(ev.status)}</span>`;
+  else body = esc(ev.msg || '');
+  const row = document.createElement('div'); row.className = 'row';
+  row.innerHTML = `<span class="who ${esc(who)}">${esc(who)}</span><span class="msg">${body}</span>`;
+  logEl.appendChild(row); while (logEl.children.length > 250) logEl.firstChild.remove();
+  if ($('#crew').classList.contains('on')) logEl.lastChild.scrollIntoView({block: 'end'});
+}
+
+// ---------------- live events
+let edits = 0;
+function connect() {
+  const es = new EventSource('/api/events');
+  es.onmessage = m => {
+    const ev = JSON.parse(m.data);
+    if (ev.type === 'hello') { $('#p-agents').textContent = ev.agents ? 'scout · analyst ×2 · desk' : 'offline (no key)'; $('#p-src').textContent = ev.source.startsWith('replay') ? 'replay' : 'live stream'; (ev.log || []).forEach(logRow); }
+    else if (ev.type === 'edits') { edits += ev.rows.length; $('#p-edits').textContent = edits; bumpPulse(ev.rows); ev.rows.forEach(r => { if (nodeIndex.has(r.key)) pulses.set(r.key, performance.now() + 1800); }); }
+    else if (ev.type === 'tremors') { renderTremors(ev.components); refreshGraph(); }
+    else if (ev.type === 'brief' || ev.type === 'task') { logRow(ev); refreshStories(); if (ev.type === 'brief') refreshGraph(); }
+    else if (ev.type === 'agent_log' || ev.type === 'agent_tool') { if (ev.agent !== 'desk') logRow(ev); }
+  };
+  es.onerror = () => { es.close(); setTimeout(connect, 2000); };
+}
+
+// ---------------- desk
+$('#askf').onsubmit = async e => {
+  e.preventDefault(); const q = $('#q').value.trim(); if (!q) return;
+  $('#askb').disabled = true; const a = $('#answer'); a.style.display = 'block'; a.innerHTML = '<div class="steps"></div><div class="txt"></div>';
+  const steps = a.querySelector('.steps'), txt = a.querySelector('.txt'); let raw = '';
+  const r = await fetch('/api/ask', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({question: q})});
+  const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
+  while (true) {
+    const {value, done} = await reader.read(); if (done) break; buf += dec.decode(value, {stream: true});
+    let i; while ((i = buf.indexOf('\n\n')) >= 0) {
+      const line = buf.slice(0, i).trim(); buf = buf.slice(i + 2); if (!line.startsWith('data:')) continue;
+      const ev = JSON.parse(line.slice(5));
+      if (ev.type === 'agent_tool') steps.innerHTML += `→ ${esc(ev.tool)}${ev.input?.cypher ? ': <span style="color:#9aa7b8">' + esc(ev.input.cypher.slice(0, 120)) + '</span>' : ''}<br>`;
+      if (ev.type === 'agent_text') { raw += ev.delta; txt.innerHTML = linkify(raw); a.scrollTop = a.scrollHeight; }
+    }
+  }
+  $('#askb').disabled = false;
+};
+function linkify(t) {
+  return esc(t)
+    .replace(/\[story:([\w-]+)\]/g, (_, id) => `<a href="#" onclick="openStory('${id}');document.querySelector('[data-t=stories]').click();return false">story ${id}</a>`)
+    .replace(/\[rev:(\w+):(\d+)\]/g, (_, l, r) => `<a href="${diffUrl(l, r)}" target="_blank">${l} rev ${r}</a>`);
+}
+
+initGraph(); connect(); refreshGraph(); refreshPulse(); refreshStories();
+fetch('/api/tremors').then(r => r.json()).then(d => renderTremors(d.components || []));
+setInterval(refreshGraph, 30000); setInterval(refreshPulse, 60000); setInterval(refreshStories, 20000);
+</script>
+</body>
+</html>

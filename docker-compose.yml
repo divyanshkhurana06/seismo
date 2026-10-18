@@ -1,0 +1,12 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    ports: ["6380:6379", "3001:3000"]   # 3001 = FalkorDB Browser
+  seismo:
+    build: .
+    depends_on: [falkordb]
+    environment:
+      FALKORDB_URL: falkor://falkordb:6379
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      SEISMO_SOURCE: ${SEISMO_SOURCE:-live}      # or replay:data/sample.jsonl:20
+    ports: ["8080:8080"]
