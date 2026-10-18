@@ -105,7 +105,7 @@ def scheduler_thread():
             state["tremors"] = d
             bus.emit({"type": "tremors", "components": d["components"][:10], "n_pages": len(d["pages"]), "since": d["since"]})
             if AGENTS_ON and d["components"]:
-                agents.scout(d["components"][:8], bus.emit)
+                agents.scout(d["components"][:5], bus.emit)
             elif not AGENTS_ON:
                 bus.emit({"type": "agent_log", "agent": "system", "msg": "agents offline: set ANTHROPIC_API_KEY to enable Scout/Analyst/Desk"})
         except Exception as e:
