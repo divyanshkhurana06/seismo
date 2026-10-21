@@ -84,6 +84,15 @@ def ingest_thread():
                                               "delta": r["delta"], "revert": r["revert"], "key": r["wiki"] + "|" + r["title"],
                                               "rev": r["rev"], "ts": r["ts"]} for r in rows]})
     w.listeners.append(on_rows)
+
+    def prune_loop():
+        while True:
+            time.sleep(120)
+            try:
+                w.prune()
+            except Exception as e:
+                print(f"[prune] {e}", flush=True)
+    threading.Thread(target=prune_loop, daemon=True, name="prune").start()
     if SOURCE.startswith("replay:"):
         parts = SOURCE.split(":")
         while True:  # loop the recording forever

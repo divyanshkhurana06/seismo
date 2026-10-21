@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 import uuid
 from typing import Callable, Iterator
@@ -306,8 +307,15 @@ def scout(components: list[dict], emit: Emit) -> list[dict]:
 
 
 # ------------------------------------------------------------------ Analyst
+MAX_BRIEFS_PER_HOUR = int(os.environ.get("SEISMO_MAX_BRIEFS_PER_HOUR", 8))
+
+
 def claim_task(worker: str) -> dict | None:
     g = graph()
+    recent = g.ro_query("MATCH (t:Task) WHERE t.claimed_at > $h RETURN count(t)",
+                        params={"h": int(time.time()) - 3600}).result_set[0][0]
+    if recent >= MAX_BRIEFS_PER_HOUR:
+        return None  # budget guard: leave tasks open until the hour rolls over
     rows = g.query("""MATCH (t:Task {status: 'open'})-[:TARGETS]->(s:Story)
                       WITH t, s ORDER BY t.priority DESC, t.created ASC LIMIT 1
                       SET t.status = 'claimed', t.claimed_by = $w, t.claimed_at = $now

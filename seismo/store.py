@@ -76,13 +76,17 @@ MERGE (u)-[t:TOUCHED]->(p)
 """
 
 PRUNE = """
-MATCH (e:Edit) WHERE e.ts < $cutoff
+MATCH (e:Edit) WHERE e.ts < $cutoff AND NOT (e)<-[:CITES]-()
 WITH e LIMIT 5000
 DETACH DELETE e
 """
 PRUNE_ORPHANS = """
 MATCH (p:Page) WHERE p.last_ts < $cutoff AND NOT (p)<-[:ABOUT]-() AND NOT (p)<-[:ON]-()
 WITH p LIMIT 5000 DETACH DELETE p
+"""
+PRUNE_EDITORS = """
+MATCH (u:Editor) WHERE u.last_ts < $cutoff AND NOT (u)-[:MADE]->()
+WITH u LIMIT 5000 DETACH DELETE u
 """
 
 
@@ -111,7 +115,12 @@ class GraphWriter:
             rows, self.buf = self.buf, []
         if not rows:
             return 0
-        self.g.query(UPSERT, params={"rows": rows})
+        try:
+            self.g.query(UPSERT, params={"rows": rows})
+        except Exception as e:  # e.g. cloud instance over maxmemory: drop the batch, prune, keep streaming
+            print(f"[store] write failed ({str(e)[:80]}); pruning", flush=True)
+            self.prune()
+            return 0
         self.total += len(rows)
         for fn in self.listeners:
             try:
@@ -123,10 +132,17 @@ class GraphWriter:
         return len(rows)
 
     def prune(self) -> None:
+        """Drop edits older than the retention window, then pages and editors nothing points at any more."""
         cutoff = int(time.time()) - RETAIN_SECONDS
-        self.g.query(PRUNE, params={"cutoff": cutoff})
-        self.g.query(PRUNE_ORPHANS, params={"cutoff": cutoff})
         self.last_prune = time.time()
+        for q in (PRUNE, PRUNE_ORPHANS, PRUNE_EDITORS):
+            for _ in range(20):  # batches of 5000 until nothing is left
+                try:
+                    if self.g.query(q, params={"cutoff": cutoff}).nodes_deleted == 0:
+                        break
+                except Exception as e:
+                    print(f"[store] prune failed: {str(e)[:80]}", flush=True)
+                    break
 
     def run(self, source) -> None:
         """Consume an event iterator forever, flushing on a timer."""

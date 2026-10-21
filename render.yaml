@@ -14,4 +14,12 @@ services:
       - key: SEISMO_SOURCE
         value: live
       - key: SEISMO_RETAIN
-        value: "7200"        # 2 h of edits keeps the graph well under the 100 MB free-tier cap
+        value: "5400"        # 90 min of edits keeps the graph well under the 100 MB free-tier cap
+      - key: SEISMO_DETECT_EVERY
+        value: "120"
+      - key: SEISMO_ANALYSTS
+        value: "1"
+      - key: SEISMO_MAX_BRIEFS_PER_HOUR
+        value: "6"
+      - key: SEISMO_MODEL_ANALYST
+        value: claude-sonnet-5-5   # unattended always-on demo; switch back to claude-opus-5-5 for max quality

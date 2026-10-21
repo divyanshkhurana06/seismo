@@ -199,8 +199,9 @@ SEISMO_SOURCE=replay:data/sample.jsonl:20 .venv/bin/uvicorn seismo.server:app --
 
 Record your own: `python -m seismo.stream record data/capture.jsonl`.
 
-Useful env vars: `FALKORDB_URL`, `SEISMO_WINDOW` (detection window, s), `SEISMO_RETAIN` (history kept, s),
-`SEISMO_DETECT_EVERY`, `SEISMO_ANALYSTS`, `SEISMO_MODEL_ANALYST`, `SEISMO_MODEL_SCOUT`.
+Useful env vars: `FALKORDB_URL`, `SEISMO_WINDOW` (detection window, s), `SEISMO_RETAIN` (history kept, s; cited edits are
+never pruned), `SEISMO_DETECT_EVERY`, `SEISMO_ANALYSTS`, `SEISMO_MAX_BRIEFS_PER_HOUR` (token budget guard),
+`SEISMO_ADAPTIVE` (accept 2-editor tremors in quiet hours; default on for replay), `SEISMO_MODEL_ANALYST`, `SEISMO_MODEL_SCOUT`.
 
 ## Deploy (free tiers)
 

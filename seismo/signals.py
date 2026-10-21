@@ -13,6 +13,10 @@ import time
 from .config import WINDOW_SECONDS
 from .store import graph
 
+import os
+# Fall back to 2 editors when quiet: on by default for replay demos, off for the live stream unless SEISMO_ADAPTIVE=1.
+ADAPTIVE = os.environ.get("SEISMO_ADAPTIVE", "1" if os.environ.get("SEISMO_SOURCE", "").startswith("replay") else "0") == "1"
+
 HOT_PAGES = """
 MATCH (u:Editor)-[:MADE]->(e:Edit)-[:ON]->(p:Page)
 WHERE e.ts > $since
@@ -70,7 +74,7 @@ def detect(window: int = WINDOW_SECONDS, min_editors: int = 3, limit: int = 12) 
     since = int(time.time()) - window
     rows = []
     found = g.ro_query(HOT_PAGES, params={"since": since, "min_editors": min_editors}).result_set
-    if len(found) < 2 and min_editors > 2:
+    if ADAPTIVE and len(found) < 2 and min_editors > 2:
         min_editors = 2
         found = g.ro_query(HOT_PAGES, params={"since": since, "min_editors": min_editors}).result_set
     for r in found:
