@@ -2,6 +2,11 @@
 
 **World events, felt through Wikipedia's live edit graph.**
 
+
+** 🏆 Top 50 @ Graph Hacks x FalkorDB 2026 Hackathon **
+https://www.youtube.com/watch?v=P7yGs8U227U
+https://www.wemakedevs.org/divyanshkhurana06
+
 News doesn't get *written* on Wikipedia. It gets *edited*. When something happens in the world, strangers who have never
 coordinated converge on the same handful of articles within minutes, in several languages at once. That convergence has a
 shape, and the shape appears before any headline does.
