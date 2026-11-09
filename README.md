@@ -3,7 +3,8 @@
 **World events, felt through Wikipedia's live edit graph.**
 
 
-** 🏆 Top 50 @ Graph Hacks x FalkorDB 2026 Hackathon **
+**🏆 Top 50 @ Graph Hacks x FalkorDB 2026 Hackathon**
+
 https://www.youtube.com/watch?v=P7yGs8U227U
 https://www.wemakedevs.org/divyanshkhurana06
 
